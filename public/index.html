@@ -1,43 +1,67 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>Upload Files</title>
-<script src="/siofu/client.js"></script>
-<script src="/socket.io/socket.io.js"></script>
+    <head>
+        <title>Upload Files</title>
+        <script src="/siofu/client.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
 
-<script type="text/javascript">
-document.addEventListener("DOMContentLoaded", function(){
+        <script type="text/javascript">
+            let textEscapeElem = document.createElement('div')
+            function escape(x) {textEscapeElem.innerText=x;return textEscapeElem.innerHTML;}
+            function updatePlaylist(packet) {
+                let elem = document.getElementById("playlist");
+                elem.innerHTML="<tr><th>Title</th><th>Artist</th><th>Length</th><th>Filename</th></tr>";
+                for (let i = 0; i < packet.playlist.length; i++) {
+                    let item = packet.playlist[i];
+                    elem.innerHTML+=`<tr><td>${item.title}</td><td>${item.artist}</td><td>${item.duration}</td><td>${item.filename}</td></tr>`;
+                }
+            }
+            document.addEventListener("DOMContentLoaded", function(){
+                // Initialize instances:
+                var socket = io();
+                var siofu = new SocketIOFileUpload(socket);
 
-    // Initialize instances:
-    var socket = io.connect();
-    var siofu = new SocketIOFileUpload(socket);
+                // Configure the three ways that SocketIOFileUpload can read files:
+                //document.getElementById("upload_btn").addEventListener("click", siofu.prompt, false);
+                siofu.listenOnInput(document.getElementById("upload_input"));
+                siofu.listenOnDrop(document.getElementById("file_drop"));
 
-    // Configure the three ways that SocketIOFileUpload can read files:
-    document.getElementById("upload_btn").addEventListener("click", siofu.prompt, false);
-    siofu.listenOnInput(document.getElementById("upload_input"));
-    siofu.listenOnDrop(document.getElementById("file_drop"));
+                // Do something on upload progress:
+                siofu.addEventListener("progress", function(event){
+                    let percent = event.bytesLoaded / event.file.size * 100;
+                    console.log("File is", percent.toFixed(2), "percent loaded");
+                });
 
-    // Do something on upload progress:
-    siofu.addEventListener("progress", function(event){
-        var percent = event.bytesLoaded / event.file.size * 100;
-        console.log("File is", percent.toFixed(2), "percent loaded");
-    });
+                // Do something when a file is uploaded:
+                siofu.addEventListener("complete", function(event){
+                    console.log(event.success);
+                    console.log(event.file);
+                });
 
-    // Do something when a file is uploaded:
-    siofu.addEventListener("complete", function(event){
-        console.log(event.success);
-        console.log(event.file);
-    });
+                socket.on('playlist',(data)=>{
+                    updatePlaylist(data);
+                });
+                
+                socket.on('playback',(data)=>{
+                    playing = data.playing;
+                    time = data.position;
+                });
 
-}, false);
-</script>
+                document.getElementById('toggle').addEventListener('click',()=>{
+                    playing=!playing;
+                    socket.emit(playing?'play':'pause');
+                });
 
-</head>
-<body>
+                document.getElementById('playback_slider').addEventListener('change',(event)=>{
+                    socket.emit('seek',event.target.value);
+                });
+            }, false);
+        </script>
 
-<!-- <p><button id="upload_btn">Upload</button></p> -->
-<p><label>Choose File: <input type="file" id="upload_input"/></label></p>
-<div id="file_drop" dropzone="copy" title="drop files for upload">Drop File</div>
-
-</body>
+    </head>
+    <body>
+        <div id="file_drop" dropzone="copy"><p><button id="upload_btn">Upload</button></p></div>
+        <div id="controls"><button id="toggle">Pause</button><input id="playback_slider" type="range" min=0 max=65536/><input id="pos" type="text"/></div>
+        <table id="playlist"></table>
+    </body>
 </html>
