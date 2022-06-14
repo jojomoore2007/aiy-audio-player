@@ -1,0 +1,22 @@
+{
+  "name": "aiy-audio-player",
+  "version": "0.0.1",
+  "description": "web-based audio client for Google AIY Voice Kit",
+  "main": "index.js",
+  "scripts": {
+    "run": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jojomoore2007/aiy-audio-player.git"
+  },
+  "keywords": [],
+  "author": "jojomoore2007 <jojo62815@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^16.11.0",
+    "fastify": "^3.28.0",
+    "fastify-file-upload": "^4.0.0"
+  },
+  "devDependencies": {}
+}
