@@ -33,6 +33,17 @@ function updatePacket() {
     let meta = file.metadata();
     meta.filename = file.filename;
     meta.duration = file.duration();
+    l.push(meta)
+  }
+  let meta = {title:"Playlist Empty"}
+  if (current.item) {
+    let meta = 
+  let file = current.item.file;
+  let meta = file.metadata();
+  meta.filename = file.filename;
+  meta.duration = file.duration;
+  meta.position = current.pos;
+  return {nowPlaying: meta, playlist: l, playing: player.playing()};
 }
 io.on('connection', (socket) => {
   player.on('nowPlaying',()=>{
