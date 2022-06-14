@@ -24,6 +24,16 @@ groove.connectSoundBackend(groove.BACKEND_PULSEAUDIO);
 var devices = groove.getDevices();
 var defaultDevice = devices.list[devices.defaultIndex];
 player.device = defaultDevice;
+player.attach(playlist,(err)=>{if (err) throw err});
+function updatePacket() {
+  let current = player.position();
+  let l = [];
+  for (let item of playlist.items()) {
+    let file = item.file;
+    let meta = file.metadata();
+    meta.filename = file.filename;
+    meta.duration = file.duration();
+}
 io.on('connection', (socket) => {
   player.on('nowPlaying',()=>{
     let current = player.position();
@@ -32,27 +42,28 @@ io.on('connection', (socket) => {
       for (let file of files) {
         file.close()
       }
-      return;
     }
-    var artist = current.item.file.getMetadata('artist');
-    var title = current.item.file.getMetadata('title');
-    
-  })
+    socket.broadcast.emit('update',updatePacket())
+  });
   var uploader = new siofu();
   uploader.dir = "/app/audio";
   uploader.listen(socket);
   uploader.on('saved', (event) => {
     groove.open(event.file,(err,file) => {
-      if (err) {console.log(err);return null;}
-      files.push(file)
-      playlist.insert(files[files.length-1])
-    })
+      if (err) {console.log(err); return null;}
+      files.push(file);
+      playlist.insert(file);
+      let l = []
+      for (let item of playlist.items()) {
+        l.push([item.file.filename,item.file.metadata()])
+      }
+      socket.broadcast.emit('updateList',{});
+    });
   })
   socket.on('play', (data) => {
-    if (!playing) {
+    if (!playlist.playing) {
       playlist.play();
     }
-    playing = true;
     socket.broadcast.emit('play', {
       
     });
