@@ -15,8 +15,10 @@
   "license": "MIT",
   "dependencies": {
     "@types/node": "^16.11.0",
-    "fastify": "^3.28.0",
-    "fastify-file-upload": "^4.0.0"
+    "express": "*",
+    "socket.io": "*",
+    "socketio-file-upload": "*",
+    "groove": "*"
   },
   "devDependencies": {}
 }
