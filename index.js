@@ -73,15 +73,16 @@ io.on('connection', (socket) => {
     if (!playlist.playing()) {
       playlist.play();
     }
-    socket.broadcast.emit('play', timePacket());
+    socket.broadcast.emit('playback', timePacket());
   });
   socket.on('pause', (data) => {
     if (playlist.playing()) {
       playlist.pause();
     }
-    socket.broadcast.emit('pause', timePacket())
+    socket.broadcast.emit('playback', timePacket())
   });
   socket.on('query', (data) => {
     socket.broadcast.emit('playlist', playlistPacket());
   });
 });
+setInterval(()=>{io.broadcast.emit('playback',timePacket())},1000);
